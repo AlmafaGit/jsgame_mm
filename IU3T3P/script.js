@@ -4,6 +4,14 @@ let ga_width, ga_height;
 
 //menu div változója, ua mint a background csak egy div
 let menu;
+let start_button;
+let leaderboard_button;
+
+//deathscreen változója
+let death_screen;
+
+//leaderboard div változója
+let leaderboard;
 
 //hátterek változói, kettő van hogy szimuláljuk azok mozgását, meg azok containere
 let background;
@@ -78,6 +86,24 @@ $(document).ready(function () {
 
     //menu
     menu = $("#menu");
+    start_button = $("#start_button");
+    start_button.button().click(function () {
+        game_start();
+    })
+    $("#difficulty input[type=radio]").checkboxradio();
+
+
+    ///TODO megcsinálni az adatbázisból lekérdezést stb
+    leaderboard_button = $("#leaderboard_button");
+    leaderboard_button.button().click(function () {
+
+    })
+
+    //deathscreen
+    death_screen = $("#death_screen");
+
+    //leaderboard
+    leaderboard = $("#leaderboard");
 
     //hátterek inicializálás
     background = $("#background");
@@ -117,15 +143,16 @@ $(document).ready(function () {
     const jump = document.getElementById("jump");
     jump.volume = jump.volume/5;
 
-    menu.hide();
-    ///
-    ///TODO átrakni az inditást buttonre
-    ///
-    game_start();
+    background.hide();
 })
 
 //a játékot elindító / újrainditó függvény
 function game_start(){
+    //menü és deathscreen elrejtés, background (tényleges játéktér megjelenítése)
+    menu.hide()
+    death_screen.hide();
+    background.show();
+
     //alapértelmezett adatok beállítása / resetelése
     is_jumping = false; //ha ugrásba hal meg akkor resetelni kell, vagy nem lesz jó
     game_running = true;
@@ -138,6 +165,7 @@ function game_start(){
     $(canvas).css("top", red_panda_spawn.y + "px");
 
     //mód alapján speed beállítás
+    mode = $("#difficulty input[name=\"diff\"]:checked").val()
     if(mode === 'easy') {
         speed = 5;
     } else if(mode === 'normal') {
@@ -237,7 +265,7 @@ function draw_moving_red_panda(deltaTime){ //deltatime elnevezést aitól loptam
     ctx.drawImage(
         spriteImg,
         frame.x, frame.y+1, frame.w, frame.h, // sprite pngn frame helye, az y framehez azért kellett +1, mert rossz volt a spritesheetes érték valahol és a fölötte levő sprite talpa belógott
-        0, 0, frame.w*4, frame.h*4 // canvason a helye és mérete, 6-os szorzó egy pixel arton nem a legjobb de it is what it is
+        0, 0, frame.w*4, frame.h*4 // canvason a helye és mérete, 4-os szorzó egy pixel arton lehet nem a legjobb de it is what it is 32px túl pici mást meg nem találtam
     );
 }
 
@@ -299,7 +327,7 @@ function spawn_obstacle() {
     let spawn_x;
     let spawn_y;
 
-    if(frame_count%65-speed === 0 && r > 0.6){
+    if(frame_count%55-speed === 0 && r > 0.6){
         if(r <= 0.7){ //az akadályok közül random valamelyik, 10-10% eséllyel kb
             pic = pictures[0]; //alvo1
             spawn_y = red_panda_spawn.y-40;
@@ -437,7 +465,7 @@ function check_collisoin() {
 
             $(canvas).stop(true, false); //megáll a panda ott ahol ütközött
             game_running = false;
-            notinmenu = true; //endscreen lesz tehát működjön a restart r-rel is
+            notinmenu = true; //deathscreen lesz tehát működjön a restart r-rel is
 
             //játék intervaljainak törlése
             clearInterval(collision_interval);

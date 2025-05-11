@@ -1,3 +1,4 @@
+/*általános*/
 body{
     background-color: rgb(129,151,150);
     font-family: "Share Tech", sans-serif;
@@ -5,11 +6,7 @@ body{
     font-style: normal;
 }
 
-#title{
-    text-align: center;
-    color: black;
-}
-
+/*az egyes divek beállítása*/
 #gamearea{
     width: 1000px;
     min-width: 700px;
@@ -17,10 +14,11 @@ body{
     border: 2px rgb(25,51,45) solid;
     margin: 0 auto;
     position: relative;
-    background-color: lightyellow;
+    background-color: rgb(87, 114, 119);
     overflow: hidden;
 }
 
+/*headerben az elemek egymás mellé ne alá menjenek -> flexbox*/
 #header{
     width: 99%; /* a padding miatt :) */
     height: 30px;
@@ -39,6 +37,24 @@ body{
     margin: 0;
 }
 
+#menu{
+    width: 100%;
+    height: 400px;
+    padding: 10px;
+    display: flex;
+    gap: 20px;
+    flex-flow: column nowrap;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+#logo{
+    width: auto;
+    height: 150px;
+}
+
+/*hátterekhez css*/
 #background{
     width: 100%;
     height: 634px;
@@ -56,6 +72,7 @@ body{
     background-repeat: no-repeat;
 }
 
+/*vörös panda canvasa*/
 #canvas {
     position: absolute;
     top: 0;
@@ -63,12 +80,16 @@ body{
     z-index: 2; /* canvas rákerül a bgre és hogy a bg mögötte maradjon kell a z-index*/
 }
 
+/*akadályoknak csak ez közös :d*/
 .obstacle{
     position: absolute;
 }
 
-#menu{
-    width: 100%;
-    height: 634px;
-    position: relative;
+
+/*menü elemei*/
+
+
+
+#title{
+    margin: 0;
 }
