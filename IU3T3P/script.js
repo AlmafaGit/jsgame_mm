@@ -50,7 +50,7 @@ let bg2_pos = bg_width;
 let score;
 let score_value = 0;
 let highscore;
-let highscore_value = 0;
+let highscore_value = -1;
 let highscore_shown = false;
 
 //az játékot vezénylő interval változó
@@ -72,8 +72,7 @@ $(document).ready(function () {
     //header inicializálás
     header = $("#header")
     score = $("#score")
-    highscore = $("#highscore")
-    highscore.hide()
+    highscore = $("<p id='highscore'></p>")
 
     //canvas és contextmanager inicializálás
     canvas = $("#canvas");
@@ -136,15 +135,15 @@ function size_update(){
 
 //a fejlécen a score stb értékek updatelése
 function header_update(){
-    score.html("<p>SCORE: "+parseInt(score_value)+"</p>")
-    if(!highscore_shown && highscore_value !== 0){
-        highscore.show();
+    score.text("SCORE: "+parseInt(score_value))
+    if(!highscore_shown && highscore_value >= 0){
+        $("<div class='header_item'></div>").prependTo(header).append(highscore)
         highscore_shown = true;
     }
     if(highscore_value>score_value){
-        highscore.html("<p>HIGHSCORE: "+highscore_value+"</p>")
+        highscore.text("HIGHSCORE: "+highscore_value)
     } else{
-        highscore.html("<p>HIGHSCORE: "+parseInt(score_value)+"</p>");
+        highscore.text("HIGHSCORE: "+parseInt(score_value));
     }
 }
 

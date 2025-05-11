@@ -22,7 +22,7 @@ body{
 }
 
 #header{
-    width: 100%;
+    width: 99%; /* a padding miatt :) */
     height: 30px;
     color: white;
     padding: 5px;
@@ -32,7 +32,7 @@ body{
     justify-content: space-between;
 }
 
-#header p{
+.header_item p{
     flex: none;
     height: 30px;
     font-size: 150%;
