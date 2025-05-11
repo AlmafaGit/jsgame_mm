@@ -59,7 +59,8 @@ let frame_count = 0; //ez a játék során menő framek, nincs köze a spritého
 let game_interval;
 let collision_interval;
 let space_restart = false;
-let mode = 'easy';
+let mode = 'normal';
+let speed = 0;
 let game_running = false;
 
 
@@ -91,15 +92,21 @@ $(document).ready(function () {
     pictures.push({src: "assets/sleepy_trio.png",w: 174, h: 190});
     pictures.push({src: "assets/bird_frame1.png",w: 67, h: 75});
 
-    ///////////////////////////////////////
-    //TODO mód beállítás, vszeg a move függvényeken belül lesznek más értékek a "speed"
-    ///////////////////////////////////////
+    //mód alapján speed beállítás
+    if(mode === 'easy') {
+        speed = 5;
+    } else if(mode === 'normal') {
+        speed = 10;
+    } else if(mode === 'hard') {
+        speed = 15;
+    }
 
 
+    //jump túl hangos
+    const jump = document.getElementById("jump");
+    jump.volume = jump.volume/5;
 
-    game_running = true;
-    game_start()
-
+    game_start();
 })
 
 //a játékot elindító / újrainditó függvény
@@ -110,7 +117,7 @@ function game_start(){
     });
     //event handlerek a vörös panda mozgásának lekezelésére
     $(document).on("keydown", red_panda_move);
-    $(document).on("mousedown", red_panda_mouse_move);
+    $(game_area).on("mousedown", red_panda_mouse_move);
 
     //alapértelmezett adatok beállítása / resetelése
     game_running = true;
@@ -150,10 +157,17 @@ function draw(){
     size_update();
     header_update();
 
-    moving_background(5);
+    moving_background(speed);
     draw_moving_red_panda(16);
     draw_moving_bird();
-    draw_obstacles();
+
+    /*
+    volt / van néha bug, ahol az eventhandlerek a leszedésük után (mert ugye menübe nem kellenek csak a játékmenet közbe)
+    nem aktiválódtak elég gyorsan szóval kicsit késleltetve van az első akadály hátha nem halunk meg,
+    de volt még igyis rá példa, viszont nagyobb késleltetés gatya, illetve próbáltam nem minden eventhandler a documentumra rakni :)*/
+    if(frame_count>=200){
+        draw_obstacles();
+    }
 }
 
 
@@ -182,8 +196,8 @@ function header_update(){ //a score / highscore text lehetne külön hogy csak a
 
 //mozgó háttér a futás szimulálására
 function moving_background(speed){
-    bg1_pos -= speed;
-    bg2_pos -= speed;
+    bg1_pos -= speed/2+3;
+    bg2_pos -= speed/2+3;
 
     // ha teljesen kiment a kép, visszaugrik jobbra
     if (bg1_pos <= -bg_width) {
@@ -245,6 +259,7 @@ function red_panda_move(e) { //mivel a sprite egy canvasra van rajzolva, ezért 
     if(!is_jumping && parseInt(canvas.css("top")) >= red_panda_spawn.y-20){ //"kicsit hamarabb lehet ugrani minthogy leér", ez inkább ilyen bhop érzetet ad, hogy nincs túl nagy input lag, ha pont akkor nyomjuk meg a gombot, mikor még nem ért le csak majdnem
         if (e.code === "Space" || e.code === "KeyW" || e.code === "ArrowUp") {
             is_jumping = true;
+            $("#jump")[0].play();
             $(canvas).stop(true, false).animate({top: red_panda_spawn.y-220}, 300).delay(200).animate({top: red_panda_spawn.y}, 400, () => {is_jumping = false});
         }
     }
@@ -258,6 +273,7 @@ function red_panda_mouse_move(e) {
     if(!is_jumping && parseInt(canvas.css("top")) >= red_panda_spawn.y-20){
         if (e.button === 0) {
             is_jumping = true;
+            $("#jump")[0].play();
             $(canvas).stop(true, false).animate({top: red_panda_spawn.y-220}, 300).delay(200).animate({top: red_panda_spawn.y}, 400, () => {is_jumping = false});
         }
 
@@ -274,7 +290,7 @@ function spawn_obstacle() {
     let spawn_x;
     let spawn_y;
 
-    if(frame_count%55 === 0 && r > 0.6){
+    if(frame_count%65-speed === 0 && r > 0.6){
         if(r <= 0.7){ //az akadályok közül random valamelyik, 10-10% eséllyel kb
             pic = pictures[0]; //alvo1
             spawn_y = red_panda_spawn.y-40;
@@ -338,7 +354,7 @@ function draw_obstacles() {
 function move_obstacles() {
     $('.obstacle').each(function () {
         let currentLeft = parseInt($(this).css("left"));
-        $(this).css("left", currentLeft - 8 + "px");
+        $(this).css("left", currentLeft - (speed+3) + "px");
     });
 }
 
@@ -396,22 +412,19 @@ function check_collisoin() {
         let panda_sulypont_X = red_panda_curr.x + canvas_width/2;
         let panda_sulypont_Y = red_panda_curr.y + canvas_height*2/3;
 
-
+        //console.log(act_x, act_y)
+        //console.log(distance({x: act_x, y: act_y}, {x: panda_sulypont_X, y: panda_sulypont_Y}));
         if (distance({x: act_x, y: act_y}, {x: panda_sulypont_X, y: panda_sulypont_Y}) <= coll_dist) { // a -20 kompenzálás a láthatatlan pixelekért minden irányból
-            //console.log(panda_sulypont_X, panda_sulypont_Y)
-            //console.log(distance({x: act_x, y: act_y}, {x: panda_sulypont_X, y: panda_sulypont_Y}));
-            //console.log(act_x, act_y)
-
-            /*
             //súlypontok vizualizálására kép XD
+            /*
             let asd = $("<img src='assets/icon.png' class='obstacle'>").appendTo($("#background"))
             asd.css("position", "absolute");
-            asd.css("left", act_x+"px")
-            asd.css("top", act_y+"px")
+            asd.css("left", panda_sulypont_X+"px")
+            asd.css("top", panda_sulypont_Y+"px")
             asd.css("width", 50+"px")
             asd.css("height", 50+"px")
-            asd.css("z-index",5)
-            */
+            asd.css("z-index",5)*/
+
 
             $(canvas).stop(true, false); //megáll a panda ott ahol ütközött
             game_running = false;
@@ -426,7 +439,7 @@ function check_collisoin() {
             //event handlerek törlése
             $(document).off("contextmenu");
             $(document).off("keydown");
-            $(document).off("mousedown");
+            $(game_area).off("mousedown");
 
             if(score_value>highscore_value){
                 highscore_value = parseInt(score_value);
