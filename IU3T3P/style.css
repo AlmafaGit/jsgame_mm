@@ -1,5 +1,8 @@
-#site{
+body{
     background-color: rgb(129,151,150);
+    font-family: "Share Tech", sans-serif;
+    font-weight: 400;
+    font-style: normal;
 }
 
 #title{
@@ -8,12 +11,11 @@
 }
 
 #gamearea{
-    width: 70%;
+    width: 1000px;
     min-width: 700px;
-    max-width: 1376px;
     height: fit-content;
     border: 2px rgb(25,51,45) solid;
-    margin: auto;
+    margin: 0 auto;
     position: relative;
     background-color: lightyellow;
     overflow: hidden;
@@ -25,6 +27,16 @@
     color: white;
     padding: 5px;
     background-color: rgb(25,51,45);
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-between;
+}
+
+#header p{
+    flex: none;
+    height: 30px;
+    font-size: 150%;
+    margin: 0;
 }
 
 #background{
@@ -48,5 +60,9 @@
     position: absolute;
     top: 0;
     left: 0;
-    z-index: 2; /* canvas rákerül a bgre és hogy a bg mögötte maradjon kell a z (mélységi cuccot állítani) */
+    z-index: 2; /* canvas rákerül a bgre és hogy a bg mögötte maradjon kell a z-index*/
+}
+
+.obstacle{
+    position: absolute;
 }

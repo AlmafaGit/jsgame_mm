@@ -10,18 +10,29 @@
     <script src="jquery/jquery-3.7.1.min.js"></script>
     <script src="jquery/jquery-ui.min.js"></script>
     <script src="script.js"></script>
+
+    <!-- font ezt nem töltöttem le, kell hozzá internet de nem számít sokat -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech&display=swap" rel="stylesheet">
 </head>
-<body id="site">
+<body>
 
-    <h1 id="title">Red Panda Runner</h1> <!-- át lesz rakva menübe -->
+<h1 id="title">Red Panda Runner</h1> <!-- át lesz rakva menübe -->
 
-    <div id="gamearea">
-        <div id="header">Készítette: .... Highscore ha van: ... Score: ....</div> <!-- stats, irányitás stb, kb 40px, rámegy a backgroundra-->
-        <div id="background">
-            <div class="bg"></div>
-            <div class="bg"></div>
-            <canvas id="canvas" width="192" height="192"></canvas>
-        </div>
+<div id="gamearea">
+    <div id="header">
+        <div id="highscore"><p>HIGHSCORE: </p></div>
+        <div id="score"><p>SCORE: </p></div>
+        <div id="author"><p>MADE BY: Szász Gergő Péter / IU3T3P</p></div>
+        <div>tooltipgomb</div>
     </div>
+    <div id="background">
+        <div class="bg"></div>
+        <div class="bg"></div>
+        <canvas id="canvas" width="128" height="128"></canvas>
+    </div>
+</div>
+
 </body>
 </html>
