@@ -111,6 +111,12 @@ $(document).ready(function () {
 
 //a játékot elindító / újrainditó függvény
 function game_start(){
+    //restartoló spaces event handler törlése ha be van állítva
+    if(space_restart){
+        $(document).off("keydown", restart);
+        space_restart = false;
+    }
+
     //megakadályozza az alapértelmezett jobbklikk menüt, így lehet a mouse_moveban a jobb klikkel leesni
     $(document).on("contextmenu", function(e) {
         e.preventDefault();
@@ -127,12 +133,6 @@ function game_start(){
     red_panda_curr.y = red_panda_spawn.y;
     $(canvas).css("left", red_panda_spawn.x + "px");
     $(canvas).css("top", red_panda_spawn.y + "px");
-
-    //restartoló spaces event handler törlése ha be van állítva
-    if(space_restart){
-        $(document).off("keydown", restart);
-        space_restart = false;
-    }
 
     //zene start
     $("#ariamath")[0].play();
@@ -419,8 +419,8 @@ function check_collisoin() {
             /*
             let asd = $("<img src='assets/icon.png' class='obstacle'>").appendTo($("#background"))
             asd.css("position", "absolute");
-            asd.css("left", panda_sulypont_X+"px")
-            asd.css("top", panda_sulypont_Y+"px")
+            asd.css("left", act_x+"px")
+            asd.css("top", act_y+"px")
             asd.css("width", 50+"px")
             asd.css("height", 50+"px")
             asd.css("z-index",5)*/
@@ -438,8 +438,8 @@ function check_collisoin() {
 
             //event handlerek törlése
             $(document).off("contextmenu");
-            $(document).off("keydown");
-            $(game_area).off("mousedown");
+            $(document).off("keydown", red_panda_move);
+            $(game_area).off("mousedown", red_panda_mouse_move);
 
             if(score_value>highscore_value){
                 highscore_value = parseInt(score_value);
@@ -461,7 +461,7 @@ function restart(e){
 
         //minden akadály törlése restartnál
         $(".obstacle").remove();
-        game_start()
+        game_start();
     }
 }
 
