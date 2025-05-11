@@ -2,7 +2,11 @@
 let game_area;
 let ga_width, ga_height;
 
-//hátterek változói, kettő van hogy szimuláljuk azok mozgását
+//menu div változója, ua mint a background csak egy div
+let menu;
+
+//hátterek változói, kettő van hogy szimuláljuk azok mozgását, meg azok containere
+let background;
 let bg1, bg2;
 let bg_width = 1376;
 
@@ -10,19 +14,18 @@ let bg_width = 1376;
 let header;
 
 //canvas ami a bg felett van
-let canvas;
+let canvas; //a jquerys selector, ezzel van kirajzoltatva a vörös panda, szóval lehetne vörös panda a neve, de azt meghagytam a pozícióknak
 let canvas_width, canvas_height;
-let ctx;
+let ctx; //contextManager, amivel canvasra rajzolhatok
 
 //akadályok, objektumok amikkel ütközve megáll a játék
 let obstacle;
 let obstacle_array = [];
 let pictures = [];
 
-//vörös panda, a hős, a megmentő, az úgráló szörmók, (a google chrome no internet access T-rex running game dinója lenne)
+//vörös panda, az úgráló szörmók, (a google chrome no internet T-rex running game dinója lenne)
 let red_panda_spawn = {x: 50, y: 480}; //alap pozíciója
 let red_panda_curr = {x: 50, y: 480}; //jelenlegi pozíciója
-let is_jumping = false;
 let spriteData;
 const MovementFrames = [];
 $.getJSON("Red Panda Sprite Sheet.json", function (data) {
@@ -58,18 +61,26 @@ let highscore_shown = false;
 let frame_count = 0; //ez a játék során menő framek, nincs köze a spritéhoz
 let game_interval;
 let collision_interval;
-let space_restart = false;
+
+//nehézség beállítására változók (mode kimaradhatna, de my game)
 let mode = 'normal';
 let speed = 0;
-let game_running = false;
 
+//változók az eventhandlerek "aktivitására", így nem kell őket offolni, lazi but logical for me
+let game_running = false; //ha true, akkor jók a mozgató eh-k
+let notinmenu = false; //ha true, akkor lehet csak restartolni
+let is_jumping = false; //ha false, akkor tud csak ugrani a vörös panda, amúgy double/tripla jumpolna és kiugrik a képernyőről
 
 
 $(document).ready(function () {
     //ga inicializálás
     game_area = $('#gamearea')
 
+    //menu
+    menu = $("#menu");
+
     //hátterek inicializálás
+    background = $("#background");
     bg1 = $(".bg").eq(0);
     bg2 = $(".bg").eq(1);
 
@@ -92,6 +103,40 @@ $(document).ready(function () {
     pictures.push({src: "assets/sleepy_trio.png",w: 174, h: 190});
     pictures.push({src: "assets/bird_frame1.png",w: 67, h: 75});
 
+    //megakadályozza az alapértelmezett jobbklikk menüt, így lehet a mouse_moveban a jobb klikkel leesni
+    $(document).on("contextmenu", function(e) {
+        e.preventDefault();
+    });
+    //event handlerek a vörös panda mozgásának lekezelésére
+    $(document).on("keydown", red_panda_move);
+    $(game_area).on("mousedown", red_panda_mouse_move);
+    //event handler játék újra inditáshoz
+    $(document).on('keydown', restart)
+
+    //jump túl hangos volt szóval hang lejebb vétele
+    const jump = document.getElementById("jump");
+    jump.volume = jump.volume/5;
+
+    menu.hide();
+    ///
+    ///TODO átrakni az inditást buttonre
+    ///
+    game_start();
+})
+
+//a játékot elindító / újrainditó függvény
+function game_start(){
+    //alapértelmezett adatok beállítása / resetelése
+    is_jumping = false; //ha ugrásba hal meg akkor resetelni kell, vagy nem lesz jó
+    game_running = true;
+    notinmenu = false;
+    score_value = 0;
+    frame_count = 0;
+    red_panda_curr.x = red_panda_spawn.x;
+    red_panda_curr.y = red_panda_spawn.y;
+    $(canvas).css("left", red_panda_spawn.x + "px");
+    $(canvas).css("top", red_panda_spawn.y + "px");
+
     //mód alapján speed beállítás
     if(mode === 'easy') {
         speed = 5;
@@ -100,39 +145,6 @@ $(document).ready(function () {
     } else if(mode === 'hard') {
         speed = 15;
     }
-
-
-    //jump túl hangos
-    const jump = document.getElementById("jump");
-    jump.volume = jump.volume/5;
-
-    game_start();
-})
-
-//a játékot elindító / újrainditó függvény
-function game_start(){
-    //restartoló spaces event handler törlése ha be van állítva
-    if(space_restart){
-        $(document).off("keydown", restart);
-        space_restart = false;
-    }
-
-    //megakadályozza az alapértelmezett jobbklikk menüt, így lehet a mouse_moveban a jobb klikkel leesni
-    $(document).on("contextmenu", function(e) {
-        e.preventDefault();
-    });
-    //event handlerek a vörös panda mozgásának lekezelésére
-    $(document).on("keydown", red_panda_move);
-    $(game_area).on("mousedown", red_panda_mouse_move);
-
-    //alapértelmezett adatok beállítása / resetelése
-    game_running = true;
-    score_value = 0;
-    frame_count = 0;
-    red_panda_curr.x = red_panda_spawn.x;
-    red_panda_curr.y = red_panda_spawn.y;
-    $(canvas).css("left", red_panda_spawn.x + "px");
-    $(canvas).css("top", red_panda_spawn.y + "px");
 
     //zene start
     $("#ariamath")[0].play();
@@ -161,10 +173,7 @@ function draw(){
     draw_moving_red_panda(16);
     draw_moving_bird();
 
-    /*
-    volt / van néha bug, ahol az eventhandlerek a leszedésük után (mert ugye menübe nem kellenek csak a játékmenet közbe)
-    nem aktiválódtak elég gyorsan szóval kicsit késleltetve van az első akadály hátha nem halunk meg,
-    de volt még igyis rá példa, viszont nagyobb késleltetés gatya, illetve próbáltam nem minden eventhandler a documentumra rakni :)*/
+    //kis downtime az első akadály előtt
     if(frame_count>=200){
         draw_obstacles();
     }
@@ -252,11 +261,11 @@ function draw_moving_bird(){
 //event handler függvények az vörös panda az ugráshoz és gyors leeséshez
 function red_panda_move(e) { //mivel a sprite egy canvasra van rajzolva, ezért a canvast kell mozgatni
     //code-ot használok key helyett, mert akkor billentyűzet, nyelv független, a tényleges fizikai billentyükre szabható, elvileg ai szerint :)
-    if(e.code === "KeyS" || e.code === "ArrowDown"){
+    if(game_running && (e.code === "KeyS" || e.code === "ArrowDown")){
         $(canvas).stop(true, false).animate({top: red_panda_spawn.y}, 100, () => {is_jumping = false});
     }
 
-    if(!is_jumping && parseInt(canvas.css("top")) >= red_panda_spawn.y-20){ //"kicsit hamarabb lehet ugrani minthogy leér", ez inkább ilyen bhop érzetet ad, hogy nincs túl nagy input lag, ha pont akkor nyomjuk meg a gombot, mikor még nem ért le csak majdnem
+    if(game_running && !is_jumping && parseInt(canvas.css("top")) >= red_panda_spawn.y-20){ //"kicsit hamarabb lehet ugrani minthogy leér", ez inkább ilyen bhop érzetet ad, hogy nincs túl nagy input lag, ha pont akkor nyomjuk meg a gombot, mikor még nem ért le csak majdnem
         if (e.code === "Space" || e.code === "KeyW" || e.code === "ArrowUp") {
             is_jumping = true;
             $("#jump")[0].play();
@@ -266,11 +275,11 @@ function red_panda_move(e) { //mivel a sprite egy canvasra van rajzolva, ezért 
 }
 
 function red_panda_mouse_move(e) {
-    if(e.button === 2){
+    if(game_running && e.button === 2){
         $(canvas).stop(true, false).animate({top: red_panda_spawn.y}, 100, () => {is_jumping = false});
     }
 
-    if(!is_jumping && parseInt(canvas.css("top")) >= red_panda_spawn.y-20){
+    if(game_running && !is_jumping && parseInt(canvas.css("top")) >= red_panda_spawn.y-20){
         if (e.button === 0) {
             is_jumping = true;
             $("#jump")[0].play();
@@ -331,7 +340,7 @@ function draw_obstacles() {
         let imgObj = act_obst.imgObj;
 
         // hozzaadjuk az új akadály képét a játékterülethez
-        $("#background").append(imgObj);
+        background.append(imgObj);
         // beállitjuk az akadály (x, y) koordinátáját és a kép szélességét
         imgObj.css({
             left: act_obst.x,
@@ -428,6 +437,7 @@ function check_collisoin() {
 
             $(canvas).stop(true, false); //megáll a panda ott ahol ütközött
             game_running = false;
+            notinmenu = true; //endscreen lesz tehát működjön a restart r-rel is
 
             //játék intervaljainak törlése
             clearInterval(collision_interval);
@@ -436,26 +446,15 @@ function check_collisoin() {
             //zene stop
             $("#ariamath")[0].pause();
 
-            //event handlerek törlése
-            $(document).off("contextmenu");
-            $(document).off("keydown", red_panda_move);
-            $(game_area).off("mousedown", red_panda_mouse_move);
-
             if(score_value>highscore_value){
                 highscore_value = parseInt(score_value);
             }
-
-            //event handler játék újra inditáshoz
-            $(document).on('keydown', restart)
-
         }
     });
 }
 
 function restart(e){
-    if(e.code === "Space"){
-        space_restart = true;
-
+    if(notinmenu && e.code === "KeyR"){
         //zene restart
         $("#ariamath")[0].currentTime = 0;
 

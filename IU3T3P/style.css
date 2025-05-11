@@ -66,3 +66,9 @@ body{
 .obstacle{
     position: absolute;
 }
+
+#menu{
+    width: 100%;
+    height: 634px;
+    position: relative;
+}
