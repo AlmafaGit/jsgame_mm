@@ -6,9 +6,14 @@ let ga_width, ga_height;
 let menu;
 let start_button;
 let leaderboard_button;
+let back_to_menu_button;
 
 //deathscreen változója
 let death_screen;
+let retry_button;
+let deathscreen_highscore;
+let deathscreen_score;
+
 
 //leaderboard div változója
 let leaderboard;
@@ -18,7 +23,7 @@ let background;
 let bg1, bg2;
 let bg_width = 1376;
 
-//header
+//header, a score és highscore változók lentebb (dont know why)
 let header;
 
 //canvas ami a bg felett van
@@ -61,6 +66,7 @@ let bg2_pos = bg_width;
 //egyéb játékhoz és játék menethez kellő változók
 let score;
 let score_value = 0;
+let score_shown = false;
 let highscore;
 let highscore_value = -1;
 let highscore_shown = false;
@@ -92,15 +98,41 @@ $(document).ready(function () {
     })
     $("#difficulty input[type=radio]").checkboxradio();
 
+    back_to_menu_button = $(".back_to_menu_button");
+    back_to_menu_button.button().click(function () {
+        //headerről leveszi a scoret, csak highscoret mutatja ha van
+        score_shown = false;
+        $(".header_item").each(function () {
+            let pId = $(this).find("p").attr("id"); //adott header_itemben lévő <p> id-ja
+            if (pId === "score") {
+                $(this).remove();
+            }
+        })
 
-    ///TODO megcsinálni az adatbázisból lekérdezést stb
+        notinmenu = false;
+        leaderboard.hide();
+        death_screen.hide();
+        menu.show();
+    })
+
+    retry_button = $("#retry_button");
+    retry_button.button().click(function () {
+        death_screen.hide();
+        background.show();
+        game_start();
+    })
+
+    ///TODO megcsinálni az adatbázisból lekérdezést stb és kiiratni a leaderboard divbe táblázatba maybe
     leaderboard_button = $("#leaderboard_button");
     leaderboard_button.button().click(function () {
-
+        menu.hide();
+        leaderboard.show();
     })
 
     //deathscreen
     death_screen = $("#death_screen");
+    deathscreen_highscore = $("#deathscreen_highscore");
+    deathscreen_score = $("#deathscreen_score");
 
     //leaderboard
     leaderboard = $("#leaderboard");
@@ -112,7 +144,26 @@ $(document).ready(function () {
 
     //header inicializálás
     header = $("#header")
-    score = $("#score")
+    $("#tooltip").tooltip({
+        content: `
+        <strong>Gameplay:</strong><br>
+        Avoid the sleeping pandas and birds.
+        Jump across pandas and fall fast so you don't hit the incoming birds.<br> 
+        <strong>Controls:</strong><br>
+        Jump: <strong>Space / W / Left Click</strong><br>
+        Fall: <strong>S / Right Click</strong> (while airborne)<br>
+        Restart: <strong>R</strong> (on death screen)<br>
+        `,
+        show: { effect: "scale", duration: 200 },
+        hide: { effect: "fade", duration: 100 },
+        position: {
+            my: "right top", //tooltip box ami lenyilik melyik pontját
+            at: "left bottom" //hova illesztem a i spanes cuccnak, tehát most a jobb teteje a boxnak lesz a i-s kör bal aljához igazítva
+        }
+    });
+
+
+    score = $("<p id='score'></p>")
     highscore = $("<p id='highscore'></p>")
 
     //canvas és contextmanager inicializálás
@@ -135,7 +186,7 @@ $(document).ready(function () {
     });
     //event handlerek a vörös panda mozgásának lekezelésére
     $(document).on("keydown", red_panda_move);
-    $(game_area).on("mousedown", red_panda_mouse_move);
+    $(document).on("mousedown", red_panda_mouse_move);
     //event handler játék újra inditáshoz
     $(document).on('keydown', restart)
 
@@ -144,6 +195,8 @@ $(document).ready(function () {
     jump.volume = jump.volume/5;
 
     background.hide();
+    leaderboard.hide();
+    death_screen.hide();
 })
 
 //a játékot elindító / újrainditó függvény
@@ -186,7 +239,9 @@ function game_start(){
 //a játék menetet / animációt végző függvény
 function animate(){
     frame_count++;
-    score_value = frame_count / 10;
+    //a score a nehézségi szinteknek megfelelően gyorsabban / lassabban növekszik, ez lehet maradhatott volna default érték minden nehézségre,
+    //de ha így számolom, akkor egyszerűbb a leaderboard, mert nem kell nehézséget is eltárolni, vagy hát lehetne de nem fogok :)
+    score_value = frame_count / (10 / (speed / 15));
     window.requestAnimationFrame(draw);
     //console.log(red_panda_curr.x, red_panda_curr.y);
 }
@@ -218,7 +273,15 @@ function size_update(){
 
 //a fejlécen a score stb értékek updatelése
 function header_update(){ //a score / highscore text lehetne külön hogy csak a számot kelljen updatelni, de most ez legyen a legkisebb bajom
+    //score
+    if(!score_shown){
+        let uj_header_item = $("<div class='header_item'></div>").append(score)
+        $('.header_item').has('#author').before(uj_header_item);
+        score_shown = true;
+    }
     score.text("SCORE: "+parseInt(score_value))
+
+    //highscore
     if(!highscore_shown && highscore_value >= 0){
         $("<div class='header_item'></div>").prependTo(header).append(highscore)
         highscore_shown = true;
@@ -290,28 +353,28 @@ function draw_moving_bird(){
 function red_panda_move(e) { //mivel a sprite egy canvasra van rajzolva, ezért a canvast kell mozgatni
     //code-ot használok key helyett, mert akkor billentyűzet, nyelv független, a tényleges fizikai billentyükre szabható, elvileg ai szerint :)
     if(game_running && (e.code === "KeyS" || e.code === "ArrowDown")){
-        $(canvas).stop(true, false).animate({top: red_panda_spawn.y}, 100, () => {is_jumping = false});
+        $(canvas).stop(true, false).animate({top: red_panda_spawn.y}, 100-2*speed, () => {is_jumping = false});
     }
 
     if(game_running && !is_jumping && parseInt(canvas.css("top")) >= red_panda_spawn.y-20){ //"kicsit hamarabb lehet ugrani minthogy leér", ez inkább ilyen bhop érzetet ad, hogy nincs túl nagy input lag, ha pont akkor nyomjuk meg a gombot, mikor még nem ért le csak majdnem
         if (e.code === "Space" || e.code === "KeyW" || e.code === "ArrowUp") {
             is_jumping = true;
             $("#jump")[0].play();
-            $(canvas).stop(true, false).animate({top: red_panda_spawn.y-220}, 300).delay(200).animate({top: red_panda_spawn.y}, 400, () => {is_jumping = false});
+            $(canvas).stop(true, false).animate({top: red_panda_spawn.y-220}, 300-2*speed).delay(200).animate({top: red_panda_spawn.y}, 400-3*speed, () => {is_jumping = false});
         }
     }
 }
 
 function red_panda_mouse_move(e) {
     if(game_running && e.button === 2){
-        $(canvas).stop(true, false).animate({top: red_panda_spawn.y}, 100, () => {is_jumping = false});
+        $(canvas).stop(true, false).animate({top: red_panda_spawn.y}, 100-2*speed, () => {is_jumping = false});
     }
 
     if(game_running && !is_jumping && parseInt(canvas.css("top")) >= red_panda_spawn.y-20){
         if (e.button === 0) {
             is_jumping = true;
             $("#jump")[0].play();
-            $(canvas).stop(true, false).animate({top: red_panda_spawn.y-220}, 300).delay(200).animate({top: red_panda_spawn.y}, 400, () => {is_jumping = false});
+            $(canvas).stop(true, false).animate({top: red_panda_spawn.y-220}, 300-2*speed).delay(200).animate({top: red_panda_spawn.y}, 400-3*speed, () => {is_jumping = false});
         }
 
     }
@@ -320,14 +383,14 @@ function red_panda_mouse_move(e) {
 
 // függvény az akadályok definiálására
 function spawn_obstacle() {
-    //minden 55. framen lesz 40% esély spawnoljon egy obstaclet, ami mindegyik a képernyőn kívülről kúszik majd be
+    //minden (60- speed*2). framen lesz 40% esély, hogy spawnoljon egy obstaclet, ami mindegyik a képernyőn kívülről kúszik majd be
 
     let r = Math.random();
     let pic = "";
     let spawn_x;
     let spawn_y;
 
-    if(frame_count%55-speed === 0 && r > 0.6){
+    if(frame_count % (60 - speed * 2) === 0 && r > 0.6){
         if(r <= 0.7){ //az akadályok közül random valamelyik, 10-10% eséllyel kb
             pic = pictures[0]; //alvo1
             spawn_y = red_panda_spawn.y-40;
@@ -466,6 +529,20 @@ function check_collisoin() {
             $(canvas).stop(true, false); //megáll a panda ott ahol ütközött
             game_running = false;
             notinmenu = true; //deathscreen lesz tehát működjön a restart r-rel is
+            //zene restart
+            $("#ariamath")[0].currentTime = 0;
+
+            //minden akadály törlése restartnál
+            $(".obstacle").remove();
+
+            if(score_value>highscore_value){
+                highscore_value = parseInt(score_value);
+            }
+            deathscreen_highscore.text("Highscore: "+highscore_value)
+            deathscreen_score.html("Score: "+parseInt(score_value))
+
+            death_screen.show()
+            background.hide()
 
             //játék intervaljainak törlése
             clearInterval(collision_interval);
@@ -474,20 +551,15 @@ function check_collisoin() {
             //zene stop
             $("#ariamath")[0].pause();
 
-            if(score_value>highscore_value){
-                highscore_value = parseInt(score_value);
-            }
+
         }
     });
 }
 
 function restart(e){
     if(notinmenu && e.code === "KeyR"){
-        //zene restart
-        $("#ariamath")[0].currentTime = 0;
-
-        //minden akadály törlése restartnál
-        $(".obstacle").remove();
+        death_screen.hide();
+        background.show();
         game_start();
     }
 }

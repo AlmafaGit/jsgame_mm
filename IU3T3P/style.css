@@ -1,5 +1,6 @@
 /*általános*/
 body{
+    color: white;
     background-color: rgb(129,151,150);
     font-family: "Share Tech", sans-serif;
     font-weight: 400;
@@ -22,7 +23,6 @@ body{
 #header{
     width: 99%; /* a padding miatt :) */
     height: 30px;
-    color: white;
     padding: 5px;
     background-color: rgb(25,51,45);
     display: flex;
@@ -37,7 +37,25 @@ body{
     margin: 0;
 }
 
-#menu{
+/*tooltip ikon span div cucc*/
+#tooltip {
+    display: inline-block;
+    width: 25px;
+    height: 25px;
+    line-height: 25px; /*linehieight és text align azért kell hogy a körben jó helyen legyen az i*/
+    text-align: center;
+    border-radius: 50%; /*azért hogy kör legyen a span*/
+    background-color: white;
+    color: black;
+    font-weight: bold;
+    cursor: pointer;
+    border: 2px solid black;
+    font-size: 16px;
+}
+
+
+/*a különböző képet, menu, leaderboard, deathscreenek beállításai*/
+.screen{
     width: 100%;
     height: 400px;
     padding: 10px;
@@ -86,10 +104,12 @@ body{
 }
 
 
-/*menü elemei*/
+/*menü eleme(i)*/
+#title, #leaderboard_title{
+    margin: 0;
+}
 
-
-
-#title{
+/*deathscreen elemei*/
+#deathscreen_highscore{
     margin: 0;
 }

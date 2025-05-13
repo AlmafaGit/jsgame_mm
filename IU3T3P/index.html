@@ -22,13 +22,13 @@
     <audio id="jump"><source src="assets/jump.wav"></audio>
     <audio id="ariamath" loop><source src="assets/C418_Aria_Math_loop_v2.mp3" ></audio>
     <div id="header">
-        <!--HIGHSCORE -->
-        <div class="header_item"><p id="score">SCORE: </p></div>
+        <!-- HIGHSCORE, első halál után (első tényleges score után) -->
+        <!-- SCORE, első game inditástól-->
         <div class="header_item"><p id="author">MADE BY: Szász Gergő Péter / IU3T3P</p></div>
-        <div class="header_item"><p id="tooltip">TOOLTIPGOMB</p></div>
+        <div class="header_item" ><span id="tooltip" title="">i</span></div>
     </div>
 
-    <div id="menu">
+    <div id="menu" class="screen">
         <img id="logo" src="assets/icon.png" alt="redpanda">
 
         <h1 id="title">Red Panda Runner</h1>
@@ -49,12 +49,17 @@
         <button id="leaderboard_button">Leaderboard</button>
     </div>
 
-    <div id="leaderboard">
-
+    <div id="leaderboard" class="screen">
+        <h1 id="leaderboard_title">Leaderboard</h1>
+        <!-- APPEND SCORES -->
+        <button class="back_to_menu_button">Back to Menu</button>
     </div>
 
-    <div id="deathscreen">
-
+    <div id="death_screen" class="screen">
+        <h2 id="deathscreen_highscore"></h2>
+        <h2 id="deathscreen_score"></h2>
+        <button id="retry_button">Retry</button>
+        <button class="back_to_menu_button">Back to Menu</button>
     </div>
 
     <div id="background">
