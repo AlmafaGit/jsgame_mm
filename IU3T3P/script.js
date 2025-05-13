@@ -157,7 +157,7 @@ $(document).ready(function () {
         show: { effect: "scale", duration: 200 },
         hide: { effect: "fade", duration: 100 },
         position: {
-            my: "right top", //tooltip box ami lenyilik melyik pontját
+            my: "right top", //tooltip box ami lenyilik melyik pontját (most jobb felső sarkot)
             at: "left bottom" //hova illesztem a i spanes cuccnak, tehát most a jobb teteje a boxnak lesz a i-s kör bal aljához igazítva
         }
     });
@@ -430,7 +430,7 @@ function draw_obstacles() {
         let act_obst = obstacle_array[obstacle_array.length-1];
         let imgObj = act_obst.imgObj;
 
-        // hozzaadjuk az új akadály képét a játékterülethez
+        // hozzáadjuk az új akadály képét a játékterülethez
         background.append(imgObj);
         // beállitjuk az akadály (x, y) koordinátáját és a kép szélességét
         imgObj.css({
@@ -438,8 +438,7 @@ function draw_obstacles() {
             top: act_obst.y,
         });
         imgObj.attr("src", act_obst.img);
-        // hozzaadjuk az obstacle class-t
-        imgObj.addClass('obstacle');
+        imgObj.addClass('obstacle'); //minden akadálynak obstacle class-a lesz
     }
 
     move_obstacles();
@@ -512,24 +511,14 @@ function check_collisoin() {
         let panda_sulypont_X = red_panda_curr.x + canvas_width/2;
         let panda_sulypont_Y = red_panda_curr.y + canvas_height*2/3;
 
-        //console.log(act_x, act_y)
-        //console.log(distance({x: act_x, y: act_y}, {x: panda_sulypont_X, y: panda_sulypont_Y}));
         if (distance({x: act_x, y: act_y}, {x: panda_sulypont_X, y: panda_sulypont_Y}) <= coll_dist) { // a -20 kompenzálás a láthatatlan pixelekért minden irányból
-            //súlypontok vizualizálására kép XD
-            /*
-            let asd = $("<img src='assets/icon.png' class='obstacle'>").appendTo($("#background"))
-            asd.css("position", "absolute");
-            asd.css("left", act_x+"px")
-            asd.css("top", act_y+"px")
-            asd.css("width", 50+"px")
-            asd.css("height", 50+"px")
-            asd.css("z-index",5)*/
-
 
             $(canvas).stop(true, false); //megáll a panda ott ahol ütközött
             game_running = false;
             notinmenu = true; //deathscreen lesz tehát működjön a restart r-rel is
-            //zene restart
+
+            //zene stop
+            $("#ariamath")[0].pause();
             $("#ariamath")[0].currentTime = 0;
 
             //minden akadály törlése restartnál
@@ -547,10 +536,6 @@ function check_collisoin() {
             //játék intervaljainak törlése
             clearInterval(collision_interval);
             clearInterval(game_interval);
-
-            //zene stop
-            $("#ariamath")[0].pause();
-
 
         }
     });
