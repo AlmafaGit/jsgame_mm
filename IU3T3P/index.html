@@ -52,12 +52,22 @@
     <div id="leaderboard" class="screen">
         <h1 id="leaderboard_title">Leaderboard</h1>
         <!-- APPEND SCORES -->
-        <button class="back_to_menu_button">Back to Menu</button>
+        <div id="leaderboard_buttons">
+            <button class="back_to_menu_button">Back to Menu</button>
+            <button id="clear_leaderboard">Clear leaderboard</button>
+        </div>
+
     </div>
 
     <div id="death_screen" class="screen">
-        <h2 id="deathscreen_highscore"></h2>
-        <h2 id="deathscreen_score"></h2>
+        <h2 id="deathscreen_highscore" class="ds_h2"></h2>
+        <h2 id="deathscreen_score" class="ds_h2"></h2>
+        <h2 class="ds_h2">Save score</h2>
+        <div id="save_score">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name">
+            <input type="submit" id="submit" name="submit" value="Save">
+        </div>
         <button id="retry_button">Retry</button>
         <button class="back_to_menu_button">Back to Menu</button>
     </div>

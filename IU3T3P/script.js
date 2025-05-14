@@ -11,12 +11,15 @@ let back_to_menu_button;
 //deathscreen változója
 let death_screen;
 let retry_button;
+let save_button;
 let deathscreen_highscore;
 let deathscreen_score;
 
 
 //leaderboard div változója
 let leaderboard;
+let leaderboard_list = [];
+let clear_leaderboard;
 
 //hátterek változói, kettő van hogy szimuláljuk azok mozgását, meg azok containere
 let background;
@@ -98,6 +101,39 @@ $(document).ready(function () {
     })
     $("#difficulty input[type=radio]").checkboxradio();
 
+    //leaderboard
+    leaderboard = $("#leaderboard");
+    update_leaderboard();
+
+    leaderboard_button = $("#leaderboard_button");
+    leaderboard_button.button().click(function () {
+        update_leaderboard();
+        menu.hide();
+        leaderboard.show();
+    })
+
+    save_button = $("#submit");
+    save_button.button().click(function () {
+        if($("#name").val() !== "") {
+            leaderboard_list.push({"name":$("#name").val(),"score":parseInt(score_value)});
+            leaderboard_list.sort(function(a, b) {
+                return b.score - a.score;
+            });
+            localStorage.setItem("leaderboard", JSON.stringify(leaderboard_list));
+            update_leaderboard();
+            death_screen.hide();
+            leaderboard.show();
+        }
+    })
+
+    clear_leaderboard = $("#clear_leaderboard");
+    clear_leaderboard.button().click(function () {
+        localStorage.clear();
+        leaderboard_list = [];
+        update_leaderboard();
+    })
+
+
     back_to_menu_button = $(".back_to_menu_button");
     back_to_menu_button.button().click(function () {
         //headerről leveszi a scoret, csak highscoret mutatja ha van
@@ -122,20 +158,13 @@ $(document).ready(function () {
         game_start();
     })
 
-    ///TODO megcsinálni az adatbázisból lekérdezést stb és kiiratni a leaderboard divbe táblázatba maybe
-    leaderboard_button = $("#leaderboard_button");
-    leaderboard_button.button().click(function () {
-        menu.hide();
-        leaderboard.show();
-    })
 
     //deathscreen
     death_screen = $("#death_screen");
     deathscreen_highscore = $("#deathscreen_highscore");
     deathscreen_score = $("#deathscreen_score");
 
-    //leaderboard
-    leaderboard = $("#leaderboard");
+
 
     //hátterek inicializálás
     background = $("#background");
@@ -180,10 +209,6 @@ $(document).ready(function () {
     pictures.push({src: "assets/sleepy_trio.png",w: 174, h: 190});
     pictures.push({src: "assets/bird_frame1.png",w: 67, h: 75});
 
-    //megakadályozza az alapértelmezett jobbklikk menüt, így lehet a mouse_moveban a jobb klikkel leesni
-    $(document).on("contextmenu", function(e) {
-        e.preventDefault();
-    });
     //event handlerek a vörös panda mozgásának lekezelésére
     $(document).on("keydown", red_panda_move);
     $(document).on("mousedown", red_panda_mouse_move);
@@ -205,6 +230,11 @@ function game_start(){
     menu.hide()
     death_screen.hide();
     background.show();
+
+    //megakadályozza az alapértelmezett jobbklikk menüt, így lehet a mouse_moveban a jobb klikkel leesni
+    $(document).on("contextmenu", function(e) {
+        e.preventDefault();
+    });
 
     //alapértelmezett adatok beállítása / resetelése
     is_jumping = false; //ha ugrásba hal meg akkor resetelni kell, vagy nem lesz jó
@@ -517,6 +547,8 @@ function check_collisoin() {
             game_running = false;
             notinmenu = true; //deathscreen lesz tehát működjön a restart r-rel is
 
+            $(document).off('contextmenu')
+
             //zene stop
             $("#ariamath")[0].pause();
             $("#ariamath")[0].currentTime = 0;
@@ -546,6 +578,21 @@ function restart(e){
         death_screen.hide();
         background.show();
         game_start();
+    }
+}
+
+function update_leaderboard(){
+    leaderboard_list = JSON.parse(localStorage.getItem("leaderboard") || "[]");
+    if($("#lb_table_body").length === 0){
+        $("#leaderboard_title").after("<table id='leaderboard_table'><thead><tr><th>Name</th><th>Score</th></tr></thead><tbody id='lb_table_body'></tbody></table>");
+    }
+    $("#lb_table_body").empty();
+    if(leaderboard_list.length !== 0){
+        for(let i = 0; i < leaderboard_list.length; i++) {
+            $("#lb_table_body").append("<tr><td>"+leaderboard_list[i].name+"</td><td>"+leaderboard_list[i].score+"</td></tr>")
+        }
+    } else{
+        $("#leaderboard_table").remove();
     }
 }
 
